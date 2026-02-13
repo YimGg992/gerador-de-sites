@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador PRO de Sites</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Roboto', sans-serif; background:#f0f2f5; margin:0; padding:0; }
+header { background:#4a90e2; color:white; padding:20px; text-align:center; }
+.container { display:flex; flex-wrap:wrap; padding:20px; gap:20px; justify-content:center; }
+.panel, .preview { background:white; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); width:400px; max-width:100%; }
+.panel h2 { margin-top:0; }
+input, select, textarea { width:100%; padding:8px; margin:5px 0; border-radius:5px; border:1px solid #ccc; }
+textarea { resize: vertical; height:200px; }
+button { padding:10px 20px; margin:5px 0; border:none; border-radius:5px; background:#4a90e2; color:white; cursor:pointer; }
+button:hover { background:#357ABD; }
+fieldset { margin:15px 0; padding:10px; border-radius:5px; border:1px solid #ccc; }
+legend { font-weight:bold; }
+.preview iframe { width:100%; height:400px; border:none; border-radius:10px; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>Gerador PRO de Sites</h1>
+<p>Crie sites funcionais e personalizados com templates e preview em tempo real</p>
+</header>
+
+<div class="container">
+
+<div class="panel">
+<h2>Key de acesso</h2>
+<input type="text" id="masterKeyInput" placeholder="Digite a key mestra">
+<p id="status" style="color:red;"></p>
+
+<div id="config" style="display:none;">
+<h2>Escolha um template</h2>
+<select id="templateSelect">
+<option value="1">Blog Moderno</option>
+<option value="2">Portfólio Profissional</option>
+<option value="3">Promoção Especial</option>
+</select>
+
+<h2>Configurações do site</h2>
+<input type="text" id="siteTitle" placeholder="Título do site">
+<textarea id="mainText" placeholder="Texto principal"></textarea>
+<input type="color" id="bgColor" value="#ffffff"> Cor de fundo
+<input type="color" id="textColor" value="#000000"> Cor do texto
+<input type="text" id="imageURL" placeholder="URL da imagem (opcional)">
+<input type="text" id="videoURL" placeholder="URL do vídeo (opcional)">
+
+<fieldset>
+<legend>Botões</legend>
+<div id="buttonsContainer"></div>
+<button type="button" id="addButtonBtn">Adicionar botão</button>
+</fieldset>
+
+<button id="generateBtn">Gerar Código</button>
+</div>
+</div>
+
+<div class="preview">
+<h2>Pré-visualização</h2>
+<iframe id="sitePreview"></iframe>
+</div>
+
+</div>
+
+<textarea id="codeOutput" readonly placeholder="O código gerado aparecerá aqui..." style="margin:20px; width:95%;"></textarea>
+
+<script>
+// Key mestra
+const MASTER_KEY = 'Yim1234567890';
+let buttonCount = 0;
+
+// Templates avançados
+const TEMPLATES = {
+1: { title:"Blog Moderno", text:"Bem-vindo ao meu blog moderno!", bg:"#fefefe", textColor:"#333333" },
+2: { title:"Portfólio Profissional", text:"Confira meus trabalhos incríveis!", bg:"#f0f8ff", textColor:"#222222" },
+3: { title:"Promoção Especial", text:"Aproveite nossa oferta exclusiva!", bg:"#fff0f0", textColor:"#000000" }
+};
+
+// Validar key
+document.getElementById('masterKeyInput').addEventListener('input', function() {
+const input = this.value.trim();
+if(input === MASTER_KEY){
+document.getElementById('status').innerText = 'Key válida!';
+document.getElementById('status').style.color = 'green';
+document.getElementById('config').style.display = 'block';
+loadTemplate();
+} else {
+document.getElementById('status').innerText = 'Key inválida!';
+document.getElementById('status').style.color = 'red';
+document.getElementById('config').style.display = 'none';
+document.getElementById('codeOutput').value = '';
+document.getElementById('sitePreview').srcdoc = '';
+}
+});
+
+// Carregar template
+document.getElementById('templateSelect').addEventListener('change', loadTemplate);
+function loadTemplate(){
+const t = TEMPLATES[document.getElementById('templateSelect').value];
+document.getElementById('siteTitle').value = t.title;
+document.getElementById('mainText').value = t.text;
+document.getElementById('bgColor').value = t.bg;
+document.getElementById('textColor').value = t.textColor;
+updatePreview();
+}
+
+// Adicionar botão
+document.getElementById('addButtonBtn').addEventListener('click', function(){
+buttonCount++;
+const div = document.createElement('div');
+div.innerHTML = `
+<input type="text" placeholder="Texto do botão" class="btnText">
+<select class="btnAction">
+<option value="alert">Mostrar alerta</option>
+<option value="console">Mensagem no console</option>
+<option value="link">Abrir link</option>
+</select>
+<input type="text" placeholder="URL (se link)" class="btnLink"><br><br>
+`;
+document.getElementById('buttonsContainer').appendChild(div);
+updatePreview();
+});
+
+// Gerar código
+document.getElementById('generateBtn').addEventListener('click', generateCode);
+
+// Atualizar preview em tempo real
+['siteTitle','mainText','bgColor','textColor','imageURL','videoURL'].forEach(id=>{
+document.getElementById(id).addEventListener('input', updatePreview);
+});
+document.getElementById('buttonsContainer').addEventListener('input', updatePreview);
+
+function generateCode(){
+const title = document.getElementById('siteTitle').value || 'Meu Site';
+const text = document.getElementById('mainText').value || 'Bem-vindo!';
+const bgColor = document.getElementById('bgColor').value;
+const textColor = document.getElementById('textColor').value;
+const imageURL = document.getElementById('imageURL').value;
+const videoURL = document.getElementById('videoURL').value;
+
+let buttonsHTML = '';
+const texts = document.querySelectorAll('.btnText');
+const actions = document.querySelectorAll('.btnAction');
+const links = document.querySelectorAll('.btnLink');
+
+texts.forEach((t,i)=>{
+const textVal = t.value || 'Botão';
+let js='';
+if(actions[i].value==='alert') js=`alert('Você clicou no botão "${textVal}"!');`;
+if(actions[i].value==='console') js=`console.log('Você clicou no botão "${textVal}"!');`;
+if(actions[i].value==='link') js=`window.open('${links[i].value || '#'}','_blank');`;
+buttonsHTML+=`<button onclick="${js}">${textVal}</button>\n`;
+});
+
+const videoHTML = videoURL ? `<video src="${videoURL}" controls style="max-width:400px; display:block; margin:20px auto;"></video>` : '';
+
+const codigo = `
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+body { font-family: Arial; text-align:center; padding:50px; background:${bgColor}; color:${textColor}; }
+button { padding:10px 20px; margin:10px; border-radius:5px; cursor:pointer; }
+img { max-width:300px; display:block; margin:20px auto; border-radius:10px; }
+video { max-width:400px; display:block; margin:20px auto; border-radius:10px; }
+</style>
+</head>
+<body>
+<h1>${title}</h1>
+<p>${text}</p>
+${imageURL?`<img src="${imageURL}" alt="Imagem">`:''}
+${videoHTML}
+${buttonsHTML}
+</body>
+</html>
+`;
+document.getElementById('codeOutput').value=codigo.trim();
+updatePreview();
+}
+
+function updatePreview(){
+const title = document.getElementById('siteTitle').value || 'Meu Site';
+const text = document.getElementById('mainText').value || 'Bem-vindo!';
+const bgColor = document.getElementById('bgColor').value;
+const textColor = document.getElementById('textColor').value;
+const imageURL = document.getElementById('imageURL').value;
+const videoURL = document.getElementById('videoURL').value;
+
+let buttonsHTML='';
+const texts = document.querySelectorAll('.btnText');
+const actions = document.querySelectorAll('.btnAction');
+const links = document.querySelectorAll('.btnLink');
+
+texts.forEach((t,i)=>{
+const textVal=t.value||'Botão';
+let js='';
+if(actions[i].value==='alert') js=`alert('Você clicou no botão "${textVal}"!');`;
+if(actions[i].value==='console') js=`console.log('Você clicou no botão "${textVal}"!');`;
+if(actions[i].value==='link') js=`window.open('${links[i].value||'#'}','_blank');`;
+buttonsHTML+=`<button onclick="${js}">${textVal}</button>\n`;
+});
+
+const videoHTML = videoURL ? `<video src="${videoURL}" controls style="max-width:400px; display:block; margin:20px auto;"></video>` : '';
+
+const previewHTML = `
+<h1>${title}</h1>
+<p>${text}</p>
+${imageURL?`<img src="${imageURL}" alt="Imagem">`:''}
+${videoHTML}
+${buttonsHTML}
+<style>
+body{font-family:Arial;text-align:center;padding:50px;background:${bgColor};color:${textColor};}
+button{padding:10px 20px;margin:10px;border-radius:5px;cursor:pointer;}
+img{max-width:300px;display:block;margin:20px auto;border-radius:10px;}
+video{max-width:400px;display:block;margin:20px auto;border-radius:10px;}
+</style>
+`;
+
+document.getElementById('sitePreview').srcdoc = previewHTML;
+}
+</script>
+
+</body>
+</html>
